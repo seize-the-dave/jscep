@@ -67,7 +67,7 @@
 						<link>http://download.oracle.com/javaee/5/api/</link>
 					</links>
 				</configuration>
-				<version>3.11.1</version>
+				<version>3.11.2</version>
 				<reportSets>
 					<reportSet>
 						<id>default</id>
@@ -176,7 +176,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-				<version>3.10.0</version>
+				<version>3.11.2</version>
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>
