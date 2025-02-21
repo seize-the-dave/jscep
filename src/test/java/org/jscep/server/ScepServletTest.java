@@ -334,7 +334,46 @@ public class ScepServletTest {
     }
 
     @Test
-    public void testRenewal() throws Exception {
+    public void testRenewalThroughRenewalReq() throws Exception {
+        PKCS10CertificationRequest csr = getCsr(name, pubKey, priKey,
+                "password".toCharArray());
+
+        PkcsPkiEnvelopeEncoder envEncoder = new PkcsPkiEnvelopeEncoder(
+                getRecipient(), "DES");
+        PkiMessageEncoder encoder = new PkiMessageEncoder(priKey, sender,
+                envEncoder);
+
+        PkcsPkiEnvelopeDecoder envDecoder = new PkcsPkiEnvelopeDecoder(sender,
+                priKey);
+        PkiMessageDecoder decoder = new PkiMessageDecoder(getRecipient(),
+                envDecoder);
+
+        Transport transport = transportFactory.forMethod(Method.POST, getURL());
+        Transaction t = new EnrollmentTransaction(transport, encoder, decoder,
+                csr, MessageType.PKCS_REQ);
+
+        State s = t.send();
+        assertThat(s, is(State.CERT_ISSUED));
+        Certificate[] certificateChain = t.getCertStore()
+                .getCertificates(null)
+                .toArray(new Certificate[0]);
+        X509Certificate prevCertificate =
+                (X509Certificate) certificateChain[certificateChain.length - 1];
+
+        KeyPair keyPair = KeyPairGenerator.getInstance("RSA").genKeyPair();
+        PrivateKey newPriKey = keyPair.getPrivate();
+        PublicKey newPubKey = keyPair.getPublic();
+        csr = getCsr(name, newPubKey, newPriKey, "badPassword".toCharArray());
+        encoder = new PkiMessageEncoder(priKey, prevCertificate, envEncoder);
+        envDecoder = new PkcsPkiEnvelopeDecoder(prevCertificate, priKey);
+        decoder = new PkiMessageDecoder(getRecipient(), envDecoder);
+        t = new EnrollmentTransaction(transport, encoder, decoder, csr, MessageType.RENEWAL_REQ);
+        State renewalSate = t.send();
+        assertThat(renewalSate, is(State.CERT_ISSUED));
+    }
+
+    @Test
+    public void testRenewalThroughPkcsReq() throws Exception {
         PKCS10CertificationRequest csr = getCsr(name, pubKey, priKey,
                 "password".toCharArray());
 
