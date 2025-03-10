@@ -131,6 +131,8 @@ public final class PkiMessageDecoder {
                             .getCertificate( cert );
                     verifier = new JcaSimpleSignerInfoVerifierBuilder().build(javaCert.getPublicKey());
                 }
+                // ensure that the encoding used of the signed attributes are the one specified in the original message
+                signerInfo = new SCEPSignerInformation(signerInfo);
                 if (signerInfo.verify(verifier) == false) {
                     final String msg = "pkiMessage verification failed.";
                     LOGGER.warn(msg);
@@ -285,5 +287,17 @@ public final class PkiMessageDecoder {
                 .getAttrValues().getObjectAt(0);
 
         return FailInfo.valueOf(Integer.valueOf(string.getString()));
+    }
+
+    private static class SCEPSignerInformation extends SignerInformation {
+
+        protected SCEPSignerInformation(SignerInformation baseInfo) {
+            super(baseInfo);
+        }
+
+        public byte[] getEncodedSignedAttributes()
+                throws IOException {
+            return signedAttributeSet.getEncoded();
+        }
     }
 }
