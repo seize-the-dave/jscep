@@ -286,12 +286,15 @@ public abstract class ScepServlet extends HttpServlet {
                     LOGGER.error("Error executing GetCRL request", e);
                     throw new ServletException(e);
                 }
-            } else if (msgType == MessageType.PKCS_REQ) {
+            } else if (msgType == MessageType.PKCS_REQ || msgType == MessageType.RENEWAL_REQ) {
                 final PKCS10CertificationRequest certReq = (PKCS10CertificationRequest) msgData;
 
                 try {
                     LOGGER.debug("Invoking doEnrol");
-                    List<X509Certificate> issued = doEnrol(certReq, reqCert, transId);
+
+                    List<X509Certificate> issued =
+                        msgType == MessageType.PKCS_REQ ? doEnrol(certReq, reqCert, transId) :
+                            doRenew(certReq, reqCert, transId);
 
                     if (issued.isEmpty()) {
                         certRep = new CertRep(transId, senderNonce,
@@ -570,6 +573,33 @@ public abstract class ScepServlet extends HttpServlet {
             final PKCS10CertificationRequest certificationRequest,
             final X509Certificate sender,
             final TransactionId transId) throws Exception;
+
+    /**
+     * Renews a certificate into the PKI represented by this SCEP interface. If
+     * the request can be completed immediately, this method returns an
+     * appropriate certificate chain. If the request is pending, this method
+     * should return null or any empty list.
+     *
+     * @param certificationRequest
+     *            the PKCS #10 CertificationRequest
+     * @param transId
+     *            the transaction ID
+     * @param sender
+     *            the sender of the certificate
+     * @return the certificate chain, if any
+     * @throws OperationFailureException
+     *             if the operation cannot be completed
+     * @throws Exception
+     *             if any problem occurs
+     */
+    protected List<X509Certificate> doRenew(
+            final PKCS10CertificationRequest certificationRequest,
+            final X509Certificate sender,
+            final TransactionId transId) throws Exception {
+
+        throw new UnsupportedOperationException("Override this function to support renewals." +
+                "This method will become abstract in the next major version update.");
+    }
 
     /**
      * Returns the private key of the recipient entity represented by this SCEP
