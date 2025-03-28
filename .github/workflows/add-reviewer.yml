@@ -1,0 +1,16 @@
+name: Add Copilot as PR Reviewer
+
+on:
+  pull_request:
+    types: [opened, reopened]
+
+jobs:
+  add-reviewer:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add Copilot as a reviewer
+        uses: peter-evans/create-or-update-comment@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.pull_request.number }}
+          reviewers: github-copilot
