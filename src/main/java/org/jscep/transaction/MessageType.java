@@ -9,6 +9,10 @@ public enum MessageType {
      */
     CERT_REP(3),
     /**
+     * PKCS #10 certificate request for renewal.
+     */
+    RENEWAL_REQ(17),
+    /**
      * PKCS #10 certificate request.
      */
     PKCS_REQ(19),
