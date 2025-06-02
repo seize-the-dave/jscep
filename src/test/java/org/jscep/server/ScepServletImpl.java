@@ -150,6 +150,33 @@ public class ScepServletImpl extends ScepServlet {
         }
     }
 
+    @Override
+    protected List<X509Certificate> doRenew(PKCS10CertificationRequest csr,
+            X509Certificate sender, TransactionId transId
+    ) throws OperationFailureException {
+        try {
+            X500Name subject = X500Name.getInstance(csr.getSubject());
+            LOGGER.debug(subject.toString());
+            if (subject.equals(pollName)) {
+                return Collections.emptyList();
+            }
+            authorizeRenewal(sender);
+            PublicKey pubKey = CertificationRequestUtils.getPublicKey(csr);
+            X509Certificate issued = generateCertificate(pubKey, subject, name,
+                    getSerial());
+
+            LOGGER.debug("Issuing {}", issued);
+            CACHE.put(
+                    new IssuerAndSerialNumber(name, issued.getSerialNumber()),
+                    issued);
+
+            return Collections.singletonList(issued);
+        } catch (Exception e) {
+            LOGGER.debug("Error in enrollment", e);
+            throw new OperationFailureException(FailInfo.badRequest);
+        }
+    }
+
     private void authorizeRenewal(X509Certificate sender)
             throws CertificateEncodingException, OperationFailureException {
         X500Name issuer = X500Name.getInstance(sender.getIssuerX500Principal().getEncoded());

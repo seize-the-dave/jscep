@@ -218,8 +218,13 @@ public final class PkiMessageDecoder {
                 } catch (IOException e) {
                     throw new MessageDecodingException(e);
                 }
+
                 LOGGER.debug("Finished decoding pkiMessage");
-                return new PkcsReq(transId, senderNonce, messageData);
+                if (messageType == MessageType.PKCS_REQ) {
+                    return new PkcsReq(transId, senderNonce, messageData);
+                }
+
+                return new RenewalReq(transId, senderNonce, messageData);
             }
         }
     }

@@ -16,6 +16,7 @@ import org.jscep.message.PkiMessage;
 import org.jscep.message.PkiMessageDecoder;
 import org.jscep.message.PkiMessageEncoder;
 import org.jscep.message.PkiRequest;
+import org.jscep.message.RenewalReq;
 import org.jscep.transport.Transport;
 import org.jscep.transport.request.PkiOperationRequest;
 import org.jscep.transport.response.PkiOperationResponseHandler;
@@ -26,6 +27,7 @@ import org.slf4j.Logger;
  * This class represents a SCEP enrollment transaction.
  * 
  * @see PkcsReq
+ * @see RenewalReq
  * @see GetCertInitial
  */
 public final class EnrollmentTransaction extends Transaction {
@@ -35,7 +37,7 @@ public final class EnrollmentTransaction extends Transaction {
     private final PkiRequest<?> request;
 
     /**
-     * Constructs a new transaction for enrollment request.
+     * Constructs a new transaction for enrollment request with a PkcsReq message
      * 
      * @param transport
      *            the transport to use to send the transaction request.
@@ -51,6 +53,28 @@ public final class EnrollmentTransaction extends Transaction {
     public EnrollmentTransaction(final Transport transport,
             final PkiMessageEncoder encoder, final PkiMessageDecoder decoder,
             final PKCS10CertificationRequest csr) throws TransactionException {
+        this(transport, encoder, decoder, csr, MessageType.PKCS_REQ);
+    }
+
+    /**
+     * Constructs a new transaction for enrollment request.
+     *
+     * @param transport
+     *            the transport to use to send the transaction request.
+     * @param encoder
+     *            the encoder to encode the transaction request.
+     * @param decoder
+     *            the decoder to decode the transaction response.
+     * @param csr
+     *            the signing request to send.
+     * @param messageType
+     *            type of message to send.
+     * @throws TransactionException
+     *             if there is a problem creating the transaction ID.
+     */
+    public EnrollmentTransaction(final Transport transport,
+            final PkiMessageEncoder encoder, final PkiMessageDecoder decoder,
+            final PKCS10CertificationRequest csr, final MessageType messageType) throws TransactionException {
         super(transport, encoder, decoder);
         try {
             this.transId = TransactionId.createTransactionId(
@@ -58,7 +82,17 @@ public final class EnrollmentTransaction extends Transaction {
         } catch (IOException e) {
             throw new TransactionException(e);
         }
-        this.request = new PkcsReq(transId, Nonce.nextNonce(), csr);
+
+        switch(messageType) {
+            case PKCS_REQ:
+                this.request = new PkcsReq(transId, Nonce.nextNonce(), csr);
+                break;
+            case RENEWAL_REQ:
+                this.request = new RenewalReq(transId, Nonce.nextNonce(), csr);
+                break;
+            default:
+                throw new IllegalArgumentException("Message type must be PKCS_REQ or RENEWAL_REQ.");
+        }
     }
 
     /**
