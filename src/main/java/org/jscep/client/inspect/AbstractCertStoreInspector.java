@@ -8,6 +8,7 @@ import java.security.cert.X509CertSelector;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
 
+import org.jscep.util.X509CertificateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,16 +68,27 @@ public abstract class AbstractCertStoreInspector implements CertStoreInspector {
 			LOGGER.debug("Selecting certificate using {}", selector);
 			Collection<? extends Certificate> certs = store
 					.getCertificates(selector);
+			
+			if (certs.size() == 1) {
+				//Only a single certificate was selected
+				LOGGER.debug("Selected 1 certificate(s) using {}", selector);
+				return (X509Certificate) certs.iterator().next();
+			}
 			if (certs.size() > 0) {
+				// sun.security.provider.certpath.CollectionCertStore.engineGetCertificates(CertSelector) returns the certificates in the form of a standard
+				// Java HashSet, thus losing the internal order. Should more than one cert be returned, simply selecting the first one from the iterator will result
+				// in a randomly returned certificate from that group.			
 				LOGGER.debug("Selected {} certificate(s) using {}",
 						certs.size(), selector);
-				return (X509Certificate) certs.iterator().next();
+				return (X509Certificate) X509CertificateUtils.orderCertificateChainRootLast(certs).get(0);
 			} else {
 				LOGGER.debug("No certificates selected");
 			}
 		}
-		return (X509Certificate) store.getCertificates(null).iterator().next();
+		return(X509Certificate) X509CertificateUtils.orderCertificateChainRootLast(store.getCertificates(null)).get(0);
 	}
+	
+	
 
 	protected abstract Collection<X509CertSelector> getIssuerSelectors(byte[] issuerDN);
 
