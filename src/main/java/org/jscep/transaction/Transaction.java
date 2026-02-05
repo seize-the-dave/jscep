@@ -3,6 +3,7 @@ package org.jscep.transaction;
 import java.security.cert.CertStore;
 
 import org.bouncycastle.cms.CMSSignedData;
+import org.jscep.message.AsnEncoding;
 import org.jscep.message.CertRep;
 import org.jscep.message.MessageDecodingException;
 import org.jscep.message.MessageEncodingException;
@@ -109,6 +110,10 @@ public abstract class Transaction {
     final CMSSignedData encode(final PkiMessage<?> message)
             throws MessageEncodingException {
         return encoder.encode(message);
+    }
+
+    final AsnEncoding getAsnEncoding() {
+        return encoder.getAsnEncoding();
     }
 
     final State pending() {

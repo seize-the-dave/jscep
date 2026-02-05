@@ -79,6 +79,17 @@ client.setTransportFactory(new UrlConnectionTransportFactory(factory));
 
 Ernst-Georg Schmid has created a transport which uses HTTP Basic authentication.  You can find his repo at [ergo70/jscep-basic-auth](https://github.com/ergo70/jscep-basic-auth).
 
+### ASN.1 encoding
+
+Some SCEP servers require definite-length BER encoding and reject messages with indefinite-length encoding. By default, jscep uses indefinite-length encoding. To use definite-length encoding, set the `AsnEncoding` option on the client:
+
+```java
+Client client = new Client(url, handler);
+client.setAsnEncoding(AsnEncoding.DL);
+```
+
+This encoding is applied to both the inner `CMSEnvelopedData` and the outer `CMSSignedData` structures.
+
 ## Creating a Callback Handler
 
 The callback handler is used to verify the CA certificate being sent by the SCEP server is the certificate you expect.  With jscep, you can choose to use either the default callback mechanism with a choice of certificate verifiers, or to provide your own callback handler.

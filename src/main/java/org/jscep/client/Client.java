@@ -56,6 +56,7 @@ import org.jscep.client.inspect.CertStoreInspector;
 import org.jscep.client.inspect.CertStoreInspectorFactory;
 import org.jscep.client.inspect.DefaultCertStoreInspectorFactory;
 import org.jscep.client.verification.CertificateVerifier;
+import org.jscep.message.AsnEncoding;
 import org.jscep.message.PkcsPkiEnvelopeDecoder;
 import org.jscep.message.PkcsPkiEnvelopeEncoder;
 import org.jscep.message.PkiMessageDecoder;
@@ -127,6 +128,7 @@ public final class Client {
     private final CallbackHandler handler;
     private CertStoreInspectorFactory inspectorFactory = new DefaultCertStoreInspectorFactory();
     private TransportFactory transportFactory = new UrlConnectionTransportFactory();
+    private AsnEncoding asnEncoding = AsnEncoding.BER;
 
 	/**
      * Constructs a new {@code Client} instance using the provided
@@ -707,7 +709,8 @@ public final class Client {
                 recipientCertificate, caps.getStrongestCipher());
 
         String sigAlg = caps.getStrongestSignatureAlgorithm();
-        return new PkiMessageEncoder(priKey, identity, envEncoder, sigAlg);
+        return new PkiMessageEncoder(priKey, identity, envEncoder, sigAlg,
+                asnEncoding);
     }
 
     private PkiMessageDecoder getDecoder(final X509Certificate identity,
@@ -767,5 +770,15 @@ public final class Client {
     public synchronized void setTransportFactory(
     		final TransportFactory transportFactory) {
     	this.transportFactory = transportFactory;
+    }
+
+    /**
+     * Sets the ASN.1 encoding type for SCEP messages.
+     *
+     * @param asnEncoding
+     *            the encoding type to use
+     */
+    public synchronized void setAsnEncoding(final AsnEncoding asnEncoding) {
+        this.asnEncoding = asnEncoding;
     }
 }

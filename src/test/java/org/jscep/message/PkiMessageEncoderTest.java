@@ -141,6 +141,18 @@ public class PkiMessageEncoderTest {
     }
 
     @Test
+    public void simpleTestDefiniteLength() throws Exception {
+        PkiMessage<?> actual = encodeAndDecodeEnvelope("DES", AsnEncoding.DL);
+        assertEquals(message, actual);
+    }
+
+    @Test
+    public void simpleTestDER() throws Exception {
+        PkiMessage<?> actual = encodeAndDecodeEnvelope("DES", AsnEncoding.DER);
+        assertEquals(message, actual);
+    }
+
+    @Test
     public void invalidSignatureTest() throws Exception {
         KeyPair caPair = KeyPairGenerator.getInstance("RSA").generateKeyPair();
         X509Certificate ca = X509Certificates.createEphemeral(
@@ -234,8 +246,13 @@ public class PkiMessageEncoderTest {
         return new CMSSignedData(ci2);
     }
     
-    public PkiMessage<?> encodeAndDecodeEnvelope(String cipherAlgorithm) throws Exception{
-    	KeyPair caPair = KeyPairGenerator.getInstance("RSA").generateKeyPair();
+    public PkiMessage<?> encodeAndDecodeEnvelope(String cipherAlgorithm) throws Exception {
+        return encodeAndDecodeEnvelope(cipherAlgorithm, AsnEncoding.BER);
+    }
+
+    public PkiMessage<?> encodeAndDecodeEnvelope(String cipherAlgorithm,
+            AsnEncoding asnEncoding) throws Exception {
+        KeyPair caPair = KeyPairGenerator.getInstance("RSA").generateKeyPair();
         X509Certificate ca = X509Certificates.createEphemeral(
                 new X500Principal("CN=CA"), caPair);
 
@@ -248,7 +265,8 @@ public class PkiMessageEncoderTest {
         PkcsPkiEnvelopeEncoder envEncoder = new PkcsPkiEnvelopeEncoder(ca,
                 cipherAlgorithm);
         PkiMessageEncoder encoder = new PkiMessageEncoder(
-                clientPair.getPrivate(), client, envEncoder);
+                clientPair.getPrivate(), client, envEncoder, "SHA1withRSA",
+                asnEncoding);
 
         PkcsPkiEnvelopeDecoder envDecoder = new PkcsPkiEnvelopeDecoder(ca,
                 caPair.getPrivate());

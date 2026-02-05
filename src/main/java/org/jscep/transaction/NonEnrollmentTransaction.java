@@ -85,7 +85,8 @@ public final class NonEnrollmentTransaction extends Transaction {
             throw new TransactionException(e);
         }
 
-        CMSSignedData res = send(handler, new PkiOperationRequest(signedData));
+        CMSSignedData res = send(handler,
+                new PkiOperationRequest(signedData, getAsnEncoding()));
         CertRep response;
         try {
             response = (CertRep) decode(res);

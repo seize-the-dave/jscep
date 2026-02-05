@@ -109,7 +109,8 @@ public final class EnrollmentTransaction extends Transaction {
         }
         LOGGER.debug("Sending {}", signedData);
         PkiOperationResponseHandler handler = new PkiOperationResponseHandler();
-        CMSSignedData res = send(handler, new PkiOperationRequest(signedData));
+        CMSSignedData res = send(handler,
+                new PkiOperationRequest(signedData, getAsnEncoding()));
         LOGGER.debug("Received response {}", res);
 
         CertRep response;

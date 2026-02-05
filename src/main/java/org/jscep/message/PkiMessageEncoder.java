@@ -66,6 +66,7 @@ public final class PkiMessageEncoder {
     private X509Certificate[] chain = null;
     private final PkcsPkiEnvelopeEncoder enveloper;
     private final String signatureAlgorithm;
+    private AsnEncoding asnEncoding = AsnEncoding.BER;
 
     /**
      * Creates a new {@code PkiMessageEncoder} instance.
@@ -155,6 +156,29 @@ public final class PkiMessageEncoder {
     }
 
     /**
+     * Creates a new {@code PkiMessageEncoder} instance with specified ASN.1 encoding.
+     *
+     * @param signerKey
+     *            the key to use to sign the {@code signedData}.
+     * @param signerId
+     *            the certificate to use to identify the signer.
+     * @param enveloper
+     *            the enveloper used for encoding the {@code messageData}
+     * @param signatureAlgorithm
+     *            the algorithm used for signing the {@code messageData}
+     * @param asnEncoding
+     *            the ASN.1 encoding type to use
+     */
+    public PkiMessageEncoder(final PrivateKey signerKey,
+                             final X509Certificate signerId,
+                             final PkcsPkiEnvelopeEncoder enveloper,
+                             final String signatureAlgorithm,
+                             final AsnEncoding asnEncoding) {
+        this(signerKey, signerId, enveloper, signatureAlgorithm);
+        this.asnEncoding = asnEncoding;
+    }
+
+    /**
      * Encodes the provided {@code PkiMessage} into a PKCS #7
      * {@code signedData}.
      *
@@ -203,7 +227,8 @@ public final class PkiMessageEncoder {
         if (hasMessageData) {
             try {
                 CMSEnvelopedData ed = encodeMessage(message);
-                signable = new CMSProcessableByteArray(ed.getEncoded());
+                signable = new CMSProcessableByteArray(
+                        ed.getEncoded(asnEncoding.getEncoding()));
             } catch (IOException e) {
                 throw new MessageEncodingException(e);
             }
@@ -294,5 +319,14 @@ public final class PkiMessageEncoder {
 
     private ContentSigner getContentSigner() throws OperatorCreationException {
         return new JcaContentSignerBuilder(signatureAlgorithm).build(signerKey);
+    }
+
+    /**
+     * Returns the ASN.1 encoding type used by this encoder.
+     *
+     * @return the encoding type
+     */
+    public AsnEncoding getAsnEncoding() {
+        return asnEncoding;
     }
 }
